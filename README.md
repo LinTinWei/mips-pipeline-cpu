@@ -3,8 +3,8 @@ This project implements a 5-stage pipelined MIPS processor in Verilog.
 
 ## Steps Implemented:
 - ✅ Step 1: Instruction Set and Decoder
-- ⏳ Step 2: Datapath (In Progress)
-- ⏳ Step 3: ALU and Control Unit
+- ✅  Step 2: Datapath 
+- ⏳ Step 3: ALU and Control Unit (In Progress)
 - ⏳ Step 4: Pipeline Registers
 - ⏳ Step 5: Hazard Handling
 
