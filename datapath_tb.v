@@ -2,7 +2,8 @@
 module datapath_tb;
 
 	reg clk, rst;
-	wire [31:0] pc;
+	wire [31:0] pc, alu_result;
+	wire [31:0] read_data1, read_data2;
 
 	// 實例化數據通路
 	datapath uut (
