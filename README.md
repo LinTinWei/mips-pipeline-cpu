@@ -1,5 +1,6 @@
 # ALU testbench
 Result:(Test ADD, Sub, AND, OR, Select<branch>, Zero)
+
 A:         10, B:          5, ALU Control: 000, Result:         15, Zero: 0
 
 A:         10, B:          5, ALU Control: 001, Result:          5, Zero: 0
