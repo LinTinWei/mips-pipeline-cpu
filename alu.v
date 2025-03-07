@@ -9,11 +9,11 @@ assign zero = (alu_result == 0);
 
 always @(*) begin
 	case (alu_control)
-		3'b000: alu_result = a + b;		// 加法
-		3'b001: alu_result = a - b;		// 減法
-		3'b010: alu_result = a & b;		// AND
-		3'b011: alu_result = a | b;		// OR
-		3'b100: alu_result = (a < b) ? 1 : 0;	// 小於比較 (slt)
+		3'b010: alu_result = a + b;		// 加法
+		3'b110: alu_result = a - b;		// 減法
+		3'b000: alu_result = a & b;		// AND
+		3'b001: alu_result = a | b;		// OR
+		3'b111: alu_result = (a < b) ? 1 : 0;	// 小於比較 (slt)
 		default: alu_result = 0;
 	endcase
 	// $display("ALU Operation: A = %x, B = %x, ALU Control = %b, Result = %x", a, b, alu_control, alu_result);

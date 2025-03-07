@@ -12,14 +12,16 @@ reg [31:0] registers[31:0];	// 32 個 32-bit 暫存器
 // 當 rst = 1, 將所有暫存器清零
 integer i;
 always @(posedge clk or posedge rst) begin
+	$display("Register Write: %b", reg_write);
 	if (rst == 1) begin
 		for (i = 1; i < 32; i = i + 1) begin
 			registers[i] <= 32'b0;
 		end
+		$display("Initialized Register Files.");
 	end
-	else if (reg_write == 1) begin
+	else if (reg_write == 1'b1) begin
 		registers[write_reg] <= write_data;
-		$display("Write Reg[%d] = %h", write_reg, write_data);
+		$display("Write Register[%d] = %h, Write Data = %h", write_reg, registers[write_reg], write_data);
 	end
 end
 
