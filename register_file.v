@@ -14,7 +14,7 @@ integer i;
 always @(posedge clk or posedge rst) begin
 	$display("Register Write: %b", reg_write);
 	if (rst == 1) begin
-		for (i = 1; i < 32; i = i + 1) begin
+		for (i = 0; i < 32; i = i + 1) begin
 			registers[i] <= 32'b0;
 		end
 		$display("Initialized Register Files.");
@@ -28,7 +28,9 @@ end
 // 讀取地址改變時, 立即輸出對應的數據
 always @(*) begin
 	read_data1 = registers[read_reg1];
+	$display("Read data1: %h, read_reg1: %d", read_data1, read_reg1);
 	read_data2 = registers[read_reg2];
+	$display("Read data2: %h, read_reg2: %d", read_data2, read_reg2);
 end
 
 endmodule

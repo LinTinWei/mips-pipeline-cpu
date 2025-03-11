@@ -61,7 +61,7 @@ always @(*) begin
 			reg_dst = 1;
 			alu_src = 1;	// 用立即數
 			alu_control = ALU_ADD;
-			//$display("Opcode: %b", opcode);
+			$display("Opcode: %b, reg_dst: %b", opcode, reg_dst);
 		end
 		
 		OPCODE_LW: begin
