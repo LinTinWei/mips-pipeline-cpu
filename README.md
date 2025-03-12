@@ -35,10 +35,23 @@ addi $t2, $zero, 10	# put value 10 into register $t2 (finished)
 
 add $t0, $t1, $t2	# add $t1 and $t2 then store into $t0 (in progress)
 
-# Forwarding Note:
+# Forwarding Note:(Finished)
 
 forward_a = 2'b01 express EX stage Rs from MEM stage ALU result
 
 forward_a = 2'b10 express EX stage Rs from WB stage result
 
 forward_b is the same definition to deal the Rt forwarding.
+
+# Control Hazard: (In progress)
+
+Flush: test -> beq test (Finished)
+
+beq  $t0, $t1, 2      # 如果 $t0 == $t1，則跳轉 (跳過 `addi`)
+
+addi $t2, $zero, 10   # 若未跳轉，$t2 會變成 10
+
+nop                   # 讓 pipeline 穩定
+
+Branch Prediction (In Progress)
+

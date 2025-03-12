@@ -7,8 +7,10 @@
 
 // I-type 指令測試
 20090005  // addi $t1, $zero, 5     ; $t1 = 5
-200A000A  // addi $t2, $zero, 10    ; $t2 = 10
+200A0005  // addi $t2, $zero, 5    ; $t2 = 5
 012A4020  // add $t0, $t1, $t2	    ; $t0 = $t1 + $t2
+200B0002
+200C0003
 //8C0A0004  // lw $t2, 4($zero)       ; $t2 = Memory[4]
 //AC090007  // sw $t1, 8($zero)       ; Memory[7] = $t1
 //00000000    // 11090002  // beq $t0, $t1, L1       ; if ($t0 == $t1) jump to L1
@@ -18,3 +20,7 @@
 
 // J-type 指令測試
 // 08000002  // j 0x00000008           ; jump to address 8
+11090004  // beq $t0, $t1, 4 # 若t0 == t1, 則跳轉 
+200D000A  // addi $t2, $zero, 10   # 若未跳轉，$t5 會變成 10
+00000000  // nop                   # 讓 pipeline 穩定
+

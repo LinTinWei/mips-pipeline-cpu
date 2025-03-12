@@ -16,13 +16,23 @@ instruction_memory imem(
 // PC + 4 遞增邏輯
 assign pc_next = pc_reg + 4;
 
+// === 暫停 IF stage 直到分之確定結果
+wire stall;
+assign stall = branch & (read_data1 == read_data2);
+
 always @(posedge clk or posedge rst) begin
 	if (rst) begin
 		pc_reg <= 0;
-	end else begin
-		pc_reg <= pc_next;
+	end else if (!stall) begin
+		pc_reg <= pc_next;	// 如果 branch 成立, 則 PC 不更新
+	// end else begin
+		// pc_reg <= pc_next;
 	end
 end
+
+// === 判斷是否需要 Flush (清除 IF/ID 暫存器) ===
+wire flush;
+assign flush = branch & (read_data1 == read_data2); // BEQ 成立時 Flush
 
 // IF/ID 暫存器
 reg [31:0] if_id_pc, if_id_instruction;
@@ -30,6 +40,9 @@ always @(posedge clk or posedge rst) begin
 	if (rst) begin
 		if_id_pc <= 0;
 		if_id_instruction <= 0;
+	end else if (flush) begin
+		if_id_pc <= 0;
+		if_id_instruction <= 0;	// 清除 IF/IF, 避免執行錯誤指令
 	end else begin
 		if_id_pc <= pc_reg;
 		if_id_instruction <= instruction;
