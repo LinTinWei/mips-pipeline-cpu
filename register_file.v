@@ -21,7 +21,7 @@ always @(posedge clk or posedge rst) begin
 	end
 	else if (reg_write == 1'b1) begin
 		registers[write_reg] <= write_data;
-		$display("Write Register[%d] = %h, Write Data = %h", write_reg, registers[write_reg], write_data);
+		$display("[Register files]Write Register[%d] = %h, Write Data = %h", write_reg, registers[write_reg], write_data);
 	end
 end
 

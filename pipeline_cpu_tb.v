@@ -51,15 +51,14 @@ module pipeline_cpu_tb;
 			end
 			$display("---------------------------- dash line -----------------------------------");
 		end
-
+		
+		
 		// 驗證寄存器數據是否正確
-		/*
-        	if (uut.rf.registers[9] !== 32'h00000005 && uut.rf.registers[10] !== 32'h0000000a) begin
-            		$display("ERROR: Register $t1 = 00000005, $t2 = 0000000a, but got $t1 = %h, $t2 = %h", uut.rf.registers[9], uut.rf.registers[10]);
+        	if (uut.rf.registers[9] != 32'h00000005 && uut.rf.registers[10] != 32'h0000000a) begin
+            		$display("ERROR: Register $t1 = 00000005, $t2 = 0000000a, but got $t1 = %h, $t2 = %h, $t0 = %h", uut.rf.registers[9], uut.rf.registers[10], uut.rf.registers[8]);
         	end else begin
-            		$display("SUCCESS: Register $t1 = 00000005, $t2 = 0000000a");
+            		$display("SUCCESS: Register $t1 = 00000005, $t2 = 0000000a, $t0 = 0000000f");
         	end
-		*/
 		$finish;
 	end
 	endmodule

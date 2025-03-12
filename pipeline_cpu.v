@@ -68,11 +68,12 @@ control_unit cu(
 // 暫存器檔案
 wire [31:0] write_data_wb;
 wire [4:0] write_reg_wb;
+reg mem_wb_reg_write;
 
 register_file rf(
 	.clk(clk),
 	.rst(rst),
-	.reg_write(reg_write),
+	.reg_write(mem_wb_reg_write),
 	.read_reg1(rs),
 	.read_reg2(rt),
 	.write_reg(write_reg_wb),
@@ -120,25 +121,61 @@ always @(posedge clk or posedge rst) begin
 	end
 end
 
+// === EX: Execution ===
+// EX/MEM 暫存器
+reg [31:0] ex_mem_alu_result, ex_mem_write_data;
+reg [4:0] ex_mem_write_reg;
+reg ex_mem_mem_read, ex_mem_mem_write, ex_mem_mem_to_reg, ex_mem_reg_write;
 
-// === EX: Execution (ALU 計算) ===
-wire [31:0] alu_result, alu_operand2;
+// MEM/WB 暫存器
+reg [31:0] mem_wb_mem_data, mem_wb_alu_result;
+reg [4:0] mem_wb_write_reg;
+reg mem_wb_mem_to_reg;
+// reg mem_wb_reg_write;
+
+// === Forwarding 選擇信號 ===
+wire [1:0] forward_a, forward_b;
+wire [31:0] alu_operand1, alu_operand2;
+
+
+// Forwarding Unit 實例化 (fu)
+forwarding_unit fu(
+	.ex_rs(id_ex_rs),
+	.ex_rt(id_ex_rt),
+	.mem_wb_write_reg(mem_wb_write_reg),
+	.ex_mem_write_reg(ex_mem_write_reg),
+	.mem_wb_reg_write(mem_wb_reg_write),
+	.ex_mem_reg_write(ex_mem_reg_write),
+	.forward_a(forward_a),
+	.forward_b(forward_b)
+);
+
+// 透過 Forwarding 選擇 ALU 輸入
+assign alu_operand1 = (forward_a == 2'b10)?ex_mem_alu_result:
+			(forward_a == 2'b01)?write_data_wb:
+			id_ex_read_data1;
+
+assign alu_operand2 = (forward_b == 2'b10)?ex_mem_alu_result:
+			(forward_b == 2'b01)?write_data_wb:
+			(id_ex_alu_src)?id_ex_imm:id_ex_read_data2;
+
+// ALU 計算
+wire [31:0] alu_result;
 wire [4:0] write_reg;
 
-assign alu_operand2 = id_ex_alu_src?id_ex_imm:id_ex_read_data2;
 assign write_reg = id_ex_reg_dst ? id_ex_rt : id_ex_rd;
 
 alu my_alu(
-	.a(id_ex_read_data1),
+	.a(alu_operand1),
        	.b(alu_operand2),
 	.alu_control(id_ex_alu_control),
 	.alu_result(alu_result)
 );
 
 // EX/MEM 暫存器
-reg [31:0] ex_mem_alu_result, ex_mem_write_data;
-reg [4:0] ex_mem_write_reg;
-reg ex_mem_mem_read, ex_mem_mem_write, ex_mem_mem_to_reg, ex_mem_reg_write;
+// reg [31:0] ex_mem_alu_result, ex_mem_write_data;
+// reg [4:0] ex_mem_write_reg;
+// reg ex_mem_mem_read, ex_mem_mem_write, ex_mem_mem_to_reg, ex_mem_reg_write;
 
 always @(posedge clk or posedge rst) begin
 	if (rst) begin
@@ -149,6 +186,7 @@ always @(posedge clk or posedge rst) begin
 		ex_mem_mem_write <= 0;
 		ex_mem_mem_to_reg <= 0;
 		ex_mem_mem_write <= 0;
+		ex_mem_reg_write <= 0;
 	end else begin
 		ex_mem_alu_result <= alu_result;
                 ex_mem_write_data <= id_ex_read_data2;
@@ -173,9 +211,9 @@ data_memory dmem(
 );
 
 // MEM/WB 暫存器
-reg [31:0] mem_wb_mem_data, mem_wb_alu_result;
-reg [4:0] mem_wb_write_reg;
-reg mem_wb_mem_to_reg, mem_wb_reg_write;
+// reg [31:0] mem_wb_mem_data, mem_wb_alu_result;
+// reg [4:0] mem_wb_write_reg;
+// reg mem_wb_mem_to_reg, mem_wb_reg_write;
 always @(posedge clk or posedge rst) begin
 	if (rst) begin
 		mem_wb_mem_data <= 0;

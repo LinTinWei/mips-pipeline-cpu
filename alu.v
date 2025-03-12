@@ -16,7 +16,7 @@ always @(*) begin
 		3'b111: alu_result = (a < b) ? 1 : 0;	// 小於比較 (slt)
 		default: alu_result = 0;
 	endcase
-	// $display("ALU Operation: A = %x, B = %x, ALU Control = %b, Result = %x", a, b, alu_control, alu_result);
+	// $display("ALU: A = %b, B = %b, ALU Control = %b, Result = %h", a, b, alu_control, alu_result);
 end
 
 endmodule
