@@ -33,4 +33,4 @@ addi $t1, $zero, 5	# put value 5 into register $t1 (finished)
 
 addi $t2, $zero, 10	# put value 10 into register $t2 (finished)
 
-add $t0, $t1, $t2	# add $t1 and $t2 then store into $t0 (in progress)
+add $t0, $t1, $t2	# add $t1 and $t2 then store into $t0 (finished)
