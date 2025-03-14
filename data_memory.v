@@ -10,12 +10,10 @@ reg [31:0] memory [0:255];	// 256 個 32-bit 記憶體
 always @(posedge clk) begin
 	if (mem_write)
 		memory[addr >> 2] <= write_data;
-			$display("Memory Address: %d", addr>>2);
 end
 
 always @(*) begin
 	if (mem_read)
 		read_data = memory[addr >> 2];
-		$display("Memory Address: %d", addr>>2);
 end
 endmodule

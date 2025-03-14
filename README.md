@@ -53,5 +53,31 @@ addi $t2, $zero, 10   # 若未跳轉，$t2 會變成 10
 
 nop                   # 讓 pipeline 穩定
 
-Branch Prediction (In Progress)
+# Branch Prediction (Finished)
+
+20080005  // addi $t0, $zero, 5
+
+2009000A  // addi $t1, $zero, 10
+
+01095020  // add $t2, $t0, $t1
+
+11490002  // beq $t2, $t1, LABEL
+
+10000002  // beq $t2, $zero, FAIL
+
+08000008  // j Target
+
+00000000  // nop
+
+# test each instructions work correctly.
+
+# Usage method:
+# First step: compile and bond each module to top-module:
+
+iverilog -o pipeline_cpu_tb  pipeline_cpu_tb.v pipeline_cpu.v control_unit.v alu.v register_file.v instruction_memory.v data_memory.v forwarding_unit.v branch_prediction.v
+
+# Second step: show the wave form at gtkwave:
+
+gtkwave pipeline_cpu.vcd
+
 

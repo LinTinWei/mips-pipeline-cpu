@@ -7,54 +7,85 @@ module pipeline_cpu(
 wire [31:0] pc, pc_next, instruction;
 reg [31:0] pc_reg;
 
+// === 分支預測
+wire predicted_taken;
+wire actual_taken;
+wire mispredict;
+wire [31:0] branch_target;
+wire is_jump;
+wire [31:0] jump_target;
+
 // PC 和 指令記憶體
 instruction_memory imem(
 	.pc(pc_reg),
 	.instruction(instruction)
 );
 
-// PC + 4 遞增邏輯
-assign pc_next = pc_reg + 4;
-
-// === 暫停 IF stage 直到分之確定結果
-wire stall;
-assign stall = branch & (read_data1 == read_data2);
-
+// Prgram counter refresh
 always @(posedge clk or posedge rst) begin
 	if (rst) begin
-		pc_reg <= 0;
-	end else if (!stall) begin
-		pc_reg <= pc_next;	// 如果 branch 成立, 則 PC 不更新
-	// end else begin
-		// pc_reg <= pc_next;
+		pc_reg <= 0;		// Reset 時將 PC 設為 0
+	end else begin
+		pc_reg <= pc_next;	// 每個時鐘週期更新 PC
 	end
 end
 
-// === 判斷是否需要 Flush (清除 IF/ID 暫存器) ===
-wire flush;
-assign flush = branch & (read_data1 == read_data2); // BEQ 成立時 Flush
+// Branch Prediction Unit (BHT)
+branch_prediction bp (
+	.clk(clk),
+	.rst(rst),
+	.branch(branch),
+	.branch_taken(branch_taken),
+	.pc(pc_reg),
+	.predicted_taken(predicted_taken)
+);
+
+// 計算跳轉地址
+assign branch_target = if_id_pc + (sign_ext_imm << 2);
+assign jump_target = {if_id_pc[31:28], if_id_instruction[25:0], 2'b00};
+
+// 判斷是否為 Jump 指令
+assign is_jump = (if_id_instruction[31:26] == 6'b000010);	// opcode = 000010 for `j`
+
+// 修正 mispredict: 若 BHT 預測錯誤修正 PC
+assign actual_taken = branch & (read_data1 == read_data2);
+assign mispredict = (predicted_taken != actual_taken) & branch;
+
+// PC 更新邏輯
+assign pc_next = is_jump ? jump_target:
+       		 mispredict ? (actual_taken ? branch_target : pc_reg + 4):	
+		(predicted_taken) ? branch_target : pc_reg + 4;
+
+// === 暫停 IF stage 直到分之確定結果
+// wire stall, branch;
+// assign stall = branch & (read_data1 == read_data2);
+
+/*
+// === 靜態分支預測 (預測 Not Taken)
+// wire predicted_taken;
+// assign predicted_taken = 0;	// 靜態預測: 預測 branch 不跳轉
+*/
 
 // IF/ID 暫存器
 reg [31:0] if_id_pc, if_id_instruction;
 always @(posedge clk or posedge rst) begin
-	if (rst) begin
+	if (rst || mispredict) begin
 		if_id_pc <= 0;
-		if_id_instruction <= 0;
-	end else if (flush) begin
-		if_id_pc <= 0;
-		if_id_instruction <= 0;	// 清除 IF/IF, 避免執行錯誤指令
+		if_id_instruction <= 0; // 錯誤預測時, 清除 IF/ID
 	end else begin
 		if_id_pc <= pc_reg;
 		if_id_instruction <= instruction;
 	end
 end
 
-
 // === ID: Instruction Decode ===
 wire [4:0] rs, rt, rd;
 wire [31:0] read_data1, read_data2, sign_ext_imm;
-wire reg_write, reg_dst, alu_src, mem_read, mem_write, branch, jump, mem_to_reg;
+wire reg_write, reg_dst, alu_src, mem_read, mem_write, jump, mem_to_reg;
 wire [2:0] alu_control;
+
+assign flush = (predicted_taken != (read_data1 == read_data2)) & branch; // BEQ 成立時 Flush
+
 
 // 解碼指令
 assign rs = if_id_instruction[25:21];
@@ -89,8 +120,8 @@ register_file rf(
 	.reg_write(mem_wb_reg_write),
 	.read_reg1(rs),
 	.read_reg2(rt),
-	.write_reg(write_reg_wb),
-	.write_data(write_data_wb), // 使用最終寫回數據
+	.write_reg(write_reg_wb),	// 來自於 WB 階段
+	.write_data(write_data_wb),	// 來自於 WB 階段
 	.read_data1(read_data1),
 	.read_data2(read_data2)
 );
@@ -134,7 +165,7 @@ always @(posedge clk or posedge rst) begin
 	end
 end
 
-// === EX: Execution ===
+// === EX: Execution (ALU 計算) ===
 // EX/MEM 暫存器
 reg [31:0] ex_mem_alu_result, ex_mem_write_data;
 reg [4:0] ex_mem_write_reg;
@@ -176,6 +207,7 @@ assign alu_operand2 = (forward_b == 2'b10)?ex_mem_alu_result:
 wire [31:0] alu_result;
 wire [4:0] write_reg;
 
+// Write Register 選擇
 assign write_reg = id_ex_reg_dst ? id_ex_rt : id_ex_rd;
 
 alu my_alu(

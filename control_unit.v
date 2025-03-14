@@ -40,7 +40,6 @@ always @(*) begin
 	branch = 0;
 	jump = 0;
 	alu_control = ALU_NOP;
-	$display("Opcode: %b, Memory Write: %b", opcode, mem_write);
 	case (opcode)
 		OPCODE_RTYPE: begin	// R-type 指令
 			reg_write = 1;
